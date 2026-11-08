@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuwait Zoo | Public Population</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{--green:#1a6d38;--bright:#2e8b57;--ink:#26342b;--paper:#fff;--bg:#f3f6f4;--line:#e2e9e4}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'Segoe UI',Arial,sans-serif}
+    .top{background:linear-gradient(135deg,var(--green),var(--bright));color:#fff;padding:22px max(20px,calc((100% - 1100px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{display:flex;gap:12px;align-items:center}.brand i{font-size:28px}.brand h1{font-size:22px;margin:0}.brand p{margin:3px 0 0;opacity:.86}
+    .admin{color:white;text-decoration:none;border:1px solid #ffffff80;border-radius:8px;padding:9px 13px;white-space:nowrap}.wrap{max-width:1100px;margin:32px auto;padding:0 18px}
+    .paper{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px #18382012;padding:clamp(18px,4vw,36px)}
+    .heading{text-align:center;background:linear-gradient(135deg,var(--green),var(--bright));color:white;border-radius:10px;padding:22px 14px;margin-bottom:22px}.heading h2{margin:0 0 5px}.heading p{margin:0;opacity:.9}.status{font-size:13px;margin:12px 0;color:#58665d}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:560px}th{background:#edf5ef;color:var(--green);text-align:left}th,td{padding:12px 14px;border-bottom:1px solid var(--line)}td:not(:first-child),th:not(:first-child){text-align:center}.species{font-weight:600}.total{font-weight:700;color:var(--green)}.summary{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px}.stat{flex:1;min-width:140px;padding:16px;background:#f6faf7;border:1px solid var(--line);border-radius:10px;text-align:center}.stat small{display:block;color:#637168;text-transform:uppercase;letter-spacing:.04em}.stat strong{font-size:24px;color:var(--green)}footer{text-align:center;color:#718077;font-size:13px;padding:20px}
+    @media(max-width:600px){.top{padding:16px;align-items:flex-start}.brand h1{font-size:18px}.admin{font-size:13px;padding:7px}.wrap{margin:18px auto}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand"><i class="fa-solid fa-paw"></i><div><h1>Kuwait Zoo</h1><p>Monkey &amp; chimpanzee population</p></div></div><a class="admin" href="admin-login.html"><i class="fa-solid fa-lock"></i> Admin</a></header>
+  <main class="wrap"><section class="paper"><div class="heading"><h2>Species Population Overview</h2><p>Live public view · updates automatically</p></div><div class="status" id="status" role="status">Connecting to live data…</div>
+    <div class="table-wrap"><table><thead><tr><th>Species</th><th>Male</th><th>Female</th><th>Unknown</th><th>Total</th></tr></thead><tbody id="speciesRows"></tbody></table></div>
+    <div class="summary"><div class="stat"><small>Species</small><strong id="speciesCount">—</strong></div><div class="stat"><small>Total population</small><strong id="populationTotal">—</strong></div><div class="stat"><small>Last updated</small><strong id="lastUpdated" style="font-size:15px">—</strong></div></div>
+  </section></main><footer>Kuwait Zoo Management System</footer>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { firebaseConfig } from './firebase-config.js';
+    const db = getFirestore(initializeApp(firebaseConfig));
+    const tbody = document.getElementById('speciesRows');
+    const status = document.getElementById('status');
+    const safeNumber = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+    onSnapshot(collection(db, 'species'), snapshot => {
+      const docs = snapshot.docs.slice().sort((a,b) => (a.data().label || a.id).localeCompare(b.data().label || b.id));
+      tbody.replaceChildren(); let population = 0;
+      for (const item of docs) {
+        const d = item.data(); const male=safeNumber(d.male), female=safeNumber(d.female), unknown=safeNumber(d.unknown);
+        const total = Number.isFinite(Number(d.total)) ? Number(d.total) : male+female+unknown; population += total;
+        const row=document.createElement('tr');
+        for (const [text, cls] of [[d.label || item.id,'species'],[male,''],[female,''],[unknown,''],[total,'total']]) { const cell=document.createElement('td'); cell.textContent=text; if(cls)cell.className=cls; row.append(cell); }
+        tbody.append(row);
+      }
+      document.getElementById('speciesCount').textContent=docs.length;
+      document.getElementById('populationTotal').textContent=population;
+      document.getElementById('lastUpdated').textContent=new Date().toLocaleTimeString();
+      status.textContent=docs.length ? 'Live data connected' : 'Connected. No species documents found yet.';
+    }, error => { console.error(error); status.textContent='Could not load live data. Check Firestore rules and connection.'; });
+  </script>
+</body>
+</html>

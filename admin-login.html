@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuwait Zoo | Admin Sign In</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#1a6d38,#2e8b57);font:15px 'Segoe UI',Arial,sans-serif;color:#26342b}.box{width:min(100%,420px);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 48px #102d1b55}.head{text-align:center;color:white;padding:25px;background:linear-gradient(135deg,#2e8b57,#1a6d38)}.head i{font-size:30px}.head h1{font-size:22px;margin:8px 0 4px}.body{padding:28px}.body label{display:block;font-weight:600;margin:0 0 7px}.body input{width:100%;padding:12px;border:1px solid #d5ded8;border-radius:8px;font-size:16px;margin-bottom:16px}.body button{width:100%;padding:13px;border:0;border-radius:8px;background:#2e8b57;color:#fff;font-size:16px;font-weight:700;cursor:pointer}.body button:disabled{opacity:.65}.notice{font-size:13px;color:#66736a;margin:15px 0 0}.message{min-height:22px;margin:12px 0 0;color:#b42318}.back{display:block;text-align:center;margin-top:18px;color:#2e8b57;text-decoration:none}
+  </style>
+</head>
+<body><main class="box"><header class="head"><i class="fa-solid fa-user-shield"></i><h1>Admin Sign In</h1><div>Kuwait Zoo Management</div></header><form class="body" id="loginForm"><label for="email">Admin email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button id="loginBtn" type="submit">Sign in</button><div class="message" id="message" role="alert"></div><p class="notice">Use the admin account enabled in Firebase Authentication. Firestore rules decide who can edit data.</p><a class="back" href="index.html">Return to public view</a></form></main>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { firebaseConfig } from './firebase-config.js';
+  const auth=getAuth(initializeApp(firebaseConfig)); const form=document.getElementById('loginForm'); const msg=document.getElementById('message'); const btn=document.getElementById('loginBtn');
+  onAuthStateChanged(auth,user=>{if(user)location.replace('zooinfo.html');});
+  form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='';btn.disabled=true;btn.textContent='Signing in…';try{await signInWithEmailAndPassword(auth,document.getElementById('email').value.trim(),document.getElementById('password').value);location.replace('zooinfo.html');}catch(error){console.error(error);msg.textContent='Sign-in failed. Check the email/password and Firebase Authentication setup.';btn.disabled=false;btn.textContent='Sign in';}});
+</script></body></html>
